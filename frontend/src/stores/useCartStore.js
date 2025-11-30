@@ -11,7 +11,7 @@ export const useCartStore = create((set, get) => ({
 
 	getMyCoupon: async () => {
 		try {
-			const response = await axios.get("/api/coupons");
+			const response = await axios.get("/coupons");
 			set({ coupon: response.data });
 		} catch (error) {
 			console.error("Error fetching coupon:", error);
@@ -35,7 +35,7 @@ export const useCartStore = create((set, get) => ({
 
 	getCartItems: async () => {
 		try {
-			const res = await axios.get("/api/cart");
+			const res = await axios.get("/cart");
 			set({ cart: res.data });
 			get().calculateTotals();
 		} catch (error) {
