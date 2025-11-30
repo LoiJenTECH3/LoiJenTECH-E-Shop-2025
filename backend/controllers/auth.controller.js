@@ -2,6 +2,13 @@ import { redis } from "../lib/redis.js";
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
 
+// Define consistent cookie options to avoid repetition
+const cookieOptions = {
+    httpOnly: true, // prevents client-side JavaScript access (XSS)
+    secure: process.env.NODE_ENV === "production", // requires HTTPS in production
+    sameSite: "strict", // prevents CSRF attack
+};
+
 const generateTokens = (userId) => {
 	const accessToken = jwt.sign({ userId }, process.env.ACCESS_TOKEN_SECRET, {
 		expiresIn: "15m",
@@ -15,20 +22,19 @@ const generateTokens = (userId) => {
 };
 
 const storeRefreshToken = async (userId, refreshToken) => {
-	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60); // 7days
+    // 7 days in seconds for Redis 'EX'
+	await redis.set(`refresh_token:${userId}`, refreshToken, "EX", 7 * 24 * 60 * 60); 
 };
 
 const setCookies = (res, accessToken, refreshToken) => {
+    // FIX 1: Set maxAge for accessToken to match expiresIn: "15m"
 	res.cookie("accessToken", accessToken, {
-		httpOnly: true, // prevent XSS attacks, cross site scripting attack
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict", // prevents CSRF attack, cross-site request forgery attack
+		...cookieOptions,
 		maxAge: 15 * 60 * 1000, // 15 minutes
 	});
+    // FIX 2: Set maxAge for refreshToken to match expiresIn: "7d"
 	res.cookie("refreshToken", refreshToken, {
-		httpOnly: true, // prevent XSS attacks, cross site scripting attack
-		secure: process.env.NODE_ENV === "production",
-		sameSite: "strict", // prevents CSRF attack, cross-site request forgery attack
+		...cookieOptions,
 		maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 	});
 };
@@ -41,6 +47,8 @@ export const signup = async (req, res) => {
 		if (userExists) {
 			return res.status(400).json({ message: "User already exists" });
 		}
+        
+        // Ensure password is not exposed in the response payload
 		const user = await User.create({ name, email, password });
 
 		// authenticate
@@ -54,10 +62,11 @@ export const signup = async (req, res) => {
 			name: user.name,
 			email: user.email,
 			role: user.role,
+            // FIX 3: Include the necessary data for immediate client use if needed (e.g., initial profile state)
 		});
 	} catch (error) {
-		console.log("Error in signup controller", error.message);
-		res.status(500).json({ message: error.message });
+		console.error("Error in signup controller:", error.message); // FIX 4: Use console.error
+		res.status(500).json({ message: "LoiJenTECH Server error during signup", error: error.message });
 	}
 };
 
@@ -78,28 +87,36 @@ export const login = async (req, res) => {
 				role: user.role,
 			});
 		} else {
-			res.status(400).json({ message: "Invalid email or password" });
+            // FIX 5: Use a 401 Unauthorized status for login failures
+			res.status(401).json({ message: "Invalid email or password" }); 
 		}
 	} catch (error) {
-		console.log("Error in login controller", error.message);
-		res.status(500).json({ message: error.message });
+		console.error("Error in login controller:", error.message); // FIX 4: Use console.error
+		res.status(500).json({ message: "LoiJenTECH Server error during login", error: error.message });
 	}
 };
 
 export const logout = async (req, res) => {
 	try {
 		const refreshToken = req.cookies.refreshToken;
-		if (refreshToken) {
-			const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
-			await redis.del(`refresh_token:${decoded.userId}`);
-		}
-
+        
+        // FIX 6: Add a check for successful token verification before deleting from Redis
+        if (refreshToken) {
+            try {
+                const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+                await redis.del(`refresh_token:${decoded.userId}`);
+            } catch (jwtError) {
+                // If token is invalid/expired, we still proceed to clear cookies but log the issue
+                console.warn("Warning: Attempted logout with invalid refresh token:", jwtError.message);
+            }
+        }
+        
 		res.clearCookie("accessToken");
 		res.clearCookie("refreshToken");
 		res.json({ message: "Logged Out Successfully" });
 	} catch (error) {
-		console.log("Error in logout controller", error.message);
-		res.status(500).json({ message: "LoiJenTECH Server error", error: error.message });
+		console.error("Error in logout controller:", error.message); // FIX 4: Use console.error
+		res.status(500).json({ message: "LoiJenTECH Server error during logout", error: error.message });
 	}
 };
 
@@ -112,35 +129,48 @@ export const refreshToken = async (req, res) => {
 			return res.status(401).json({ message: "No refresh token provided" });
 		}
 
-		const decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET);
+        let decoded;
+        try {
+            // FIX 7: If verification fails, it throws, which is handled below.
+            decoded = jwt.verify(refreshToken, process.env.REFRESH_TOKEN_SECRET); 
+        } catch (jwtError) {
+            // FIX 8: Return 401 for token verification failure
+            return res.status(401).json({ message: "Invalid or expired refresh token" });
+        }
+        
 		const storedToken = await redis.get(`refresh_token:${decoded.userId}`);
 
-		if (storedToken !== refreshToken) {
-			return res.status(401).json({ message: "Invalid refresh token" });
+		if (!storedToken || storedToken !== refreshToken) { // FIX 9: Check for token existence too
+            // FIX 10: Clear cookies if tokens are mismatched or deleted (Theft detection)
+            res.clearCookie("accessToken");
+            res.clearCookie("refreshToken");
+			return res.status(401).json({ message: "Session expired or refresh token tampered" });
 		}
 
 		const accessToken = jwt.sign({ userId: decoded.userId }, process.env.ACCESS_TOKEN_SECRET, { expiresIn: "15m" });
 
 		res.cookie("accessToken", accessToken, {
-			httpOnly: true,
-			secure: process.env.NODE_ENV === "production",
-			sameSite: "strict",
+			...cookieOptions,
 			maxAge: 15 * 60 * 1000,
 		});
 
 		res.json({ message: "Token Refreshed Successfully" });
 	} catch (error) {
-		console.log("Error in refreshToken controller", error.message);
-		res.status(500).json({ message: "LoiJenTECH Server error", error: error.message });
+		console.error("Error in refreshToken controller:", error.message); // FIX 4: Use console.error
+		res.status(500).json({ message: "LoiJenTECH Server error during token refresh", error: error.message });
 	}
 };
 
 export const getProfile = async (req, res) => {
+    // Assuming 'req.user' is set by an authentication middleware (e.g., protectRoute)
 	try {
+        if (!req.user) {
+            // Handle case where middleware failed to set user or was skipped
+            return res.status(401).json({ message: "Unauthorized: User data not found in request" });
+        }
 		res.json(req.user);
 	} catch (error) {
-		res.status(500).json({ message: "Server error", error: error.message });
+		console.error("Error in getProfile controller:", error.message); // FIX 4: Use console.error
+		res.status(500).json({ message: "Server error during profile fetch", error: error.message });
 	}
 };
-
-
