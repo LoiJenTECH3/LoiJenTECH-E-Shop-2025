@@ -10,7 +10,7 @@ export const useProductStore = create((set) => ({
 	createProduct: async (productData) => {
 		set({ loading: true });
 		try {
-			const res = await axios.post("/products", productData);
+			const res = await axios.post("/api/products", productData);
 			set((prevState) => ({
 				products: [...prevState.products, res.data],
 				loading: false,
@@ -23,7 +23,7 @@ export const useProductStore = create((set) => ({
 	fetchAllProducts: async () => {
 		set({ loading: true });
 		try {
-			const response = await axios.get("/products");
+			const response = await axios.get("/api/products");
 			set({ products: response.data.products, loading: false });
 		} catch (error) {
 			set({ error: "Failed to fetch products", loading: false });
