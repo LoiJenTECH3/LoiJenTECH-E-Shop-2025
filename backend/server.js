@@ -34,7 +34,7 @@ app.use("/api/analytics", analyticsRoutes);
 
 if (process.env.NODE_ENV === 'production') {
     // Fix 2: Corrected path for static files (removed redundant '/api').
-    app.use(express.static(path.join(__dirname(), "/frontend/dist")));
+   app.use(express.static(path.join(__dirname(), "frontend", "dist")));
     
     // Fix 3: Corrected and properly closed the app._router.get block.
     app.get('*', (req, res) => {
