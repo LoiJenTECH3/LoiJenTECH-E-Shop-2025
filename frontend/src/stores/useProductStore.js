@@ -10,7 +10,7 @@ export const useProductStore = create((set) => ({
 	createProduct: async (productData) => {
 		set({ loading: true });
 		try {
-			const res = await axios.post("/products", productData);
+			const res = await axios.post("/api/products", productData);
 			set((prevState) => ({
 				products: [...prevState.products, res.data],
 				loading: false,
