@@ -19,7 +19,7 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Fix 1: Corrected __dirname function.
-const __dirname = path.resolve()
+const __dirname = path.resolve();
 
 app.use(express.json()); //allows to parse json data in request body
 app.use(cookieParser()); //middleware to parse cookies
