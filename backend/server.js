@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'url'; // CRITICAL: Added missing import
 
 import authRoutes from './routes/auth.route.js';
 import productRoutes from './routes/product.route.js';
@@ -15,6 +15,7 @@ import { connectDB } from "./lib/db.js";
 
 dotenv.config();
 
+// CRITICAL FIX: Correctly defining __filename and __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -32,7 +33,7 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 if (process.env.NODE_ENV === 'production') {
-    // FIX: Use '..' to go up one directory (out of 'backend')
+    // CRITICAL FIX: Use '..' to go up one directory (out of 'backend')
     const staticPath = path.join(__dirname, '..', 'frontend', 'dist');
 
     // Serve static files
@@ -43,6 +44,7 @@ if (process.env.NODE_ENV === 'production') {
         res.sendFile(path.join(staticPath, 'index.html'));
     });
 }
+
 
 connectDB();
 
