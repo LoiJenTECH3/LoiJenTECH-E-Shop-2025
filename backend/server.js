@@ -2,7 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
 import path from 'path';
-import { fileURLToPath } from 'url'; // FIX 1: Add fileURLToPath import
+import { fileURLToPath } from 'url';
 
 import authRoutes from './routes/auth.route.js';
 import productRoutes from './routes/product.route.js';
@@ -15,7 +15,6 @@ import { connectDB } from "./lib/db.js";
 
 dotenv.config();
 
-// FIX 2: Correctly define __filename and __dirname for ES Modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,15 +32,13 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 if (process.env.NODE_ENV === 'production') {
-    // FIX 3: Remove the incorrect function call (i.e., __dirname() -> __dirname)
     app.use(express.static(path.join(__dirname, "frontend", "dist")));
     
-    // FIX 3: Remove the incorrect function call (i.e., __dirname() -> __dirname)
+    // FIX APPLIED HERE: Changed '*' to '/*'
     app.get('/*', (req, res) => {
         res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
     });
 }
-
 
 connectDB();
 
