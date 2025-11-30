@@ -32,11 +32,13 @@ app.use("/api/payments", paymentRoutes);
 app.use("/api/analytics", analyticsRoutes);
 
 if (process.env.NODE_ENV === 'production') {
+    // Serving the static files for the production build
     app.use(express.static(path.join(__dirname, "frontend", "dist")));
     
-    // FIX APPLIED HERE: Changed '*' to '/*'
-    app.get('/*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
+    // FIX: Using app.use with a function as the final fallback to bypass the PathError.
+    // This will send 'index.html' for all requests not handled by API routes or static files.
+    app.use((req, res) => {
+        res.sendFile(path.join(__dirname, "frontend", "dist", "index.html"));
     });
 }
 
