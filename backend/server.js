@@ -37,7 +37,7 @@ if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, "frontend", "dist")));
     
     // FIX 3: Remove the incorrect function call (i.e., __dirname() -> __dirname)
-    app.get('*', (req, res) => {
+    app.get('/*', (req, res) => {
         res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
     });
 }
