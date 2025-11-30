@@ -13,7 +13,7 @@ const Navbar = () => {
 			<div className='container mx-auto px-4 py-3'>
 				<div className='flex flex-wrap justify-between items-center'>
 					<Link to='/' className='text-2xl font-bold text-emerald-400 items-center space-x-2 flex'>
-						CP.AFT  E-Shop
+						CP.AFT   Computer   E-Store
 					</Link>
 
 					<nav className='flex flex-wrap items-center gap-4'>
@@ -26,7 +26,7 @@ const Navbar = () => {
 						</Link>
 						{user && (
 							<Link
-								to={"/cart"}
+								to={"/api/cart"}
 								className='relative group text-gray-300 hover:text-emerald-400 transition duration-300 
 							ease-in-out'
 							>
