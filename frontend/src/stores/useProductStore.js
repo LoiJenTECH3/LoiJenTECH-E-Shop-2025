@@ -10,7 +10,7 @@ export const useProductStore = create((set) => ({
 	createProduct: async (productData) => {
 		set({ loading: true });
 		try {
-			const res = await axios.post("/api/products", productData);
+			const res = await axios.post("/products", productData);
 			set((prevState) => ({
 				products: [...prevState.products, res.data],
 				loading: false,
@@ -23,7 +23,7 @@ export const useProductStore = create((set) => ({
 	fetchAllProducts: async () => {
 		set({ loading: true });
 		try {
-			const response = await axios.get("/api/products");
+			const response = await axios.get("/products");
 			set({ products: response.data.products, loading: false });
 		} catch (error) {
 			set({ error: "Failed to fetch products", loading: false });
@@ -43,7 +43,7 @@ export const useProductStore = create((set) => ({
 	deleteProduct: async (productId) => {
 		set({ loading: true });
 		try {
-			await axios.delete(`/api/products/${productId}`);
+			await axios.delete(`/products/${productId}`);
 			set((prevProducts) => ({
 				products: prevProducts.products.filter((product) => product._id !== productId),
 				loading: false,
@@ -56,7 +56,7 @@ export const useProductStore = create((set) => ({
 	toggleFeaturedProduct: async (productId) => {
 		set({ loading: true });
 		try {
-			const response = await axios.patch(`/api/products/${productId}`);
+			const response = await axios.patch(`/products/${productId}`);
 			// this will update the isFeatured prop of the product
 			set((prevProducts) => ({
 				products: prevProducts.products.map((product) =>
