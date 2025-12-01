@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
   ],
   // Explicitly set the base path to ensure it loads at the root '/'
-  base: './', 
+  base: '/', 
   
   server: {
     // Vite defaults to localhost:5173, no change needed here for port
