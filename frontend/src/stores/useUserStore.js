@@ -48,7 +48,7 @@ export const useUserStore = create((set, get) => ({
 	checkAuth: async () => {
 		set({ checkingAuth: true });
 		try {
-			const response = await axios.get("/api/auth/profile");
+			const response = await axios.get("/auth/profile");
 			set({ user: response.data, checkingAuth: false });
 		} catch (error) {
 			console.log(error.message);
@@ -62,7 +62,7 @@ export const useUserStore = create((set, get) => ({
 
 		set({ checkingAuth: true });
 		try {
-			const response = await axios.post("/api/auth/refresh-token");
+			const response = await axios.post("/auth/refresh-token");
 			set({ checkingAuth: false });
 			return response.data;
 		} catch (error) {
