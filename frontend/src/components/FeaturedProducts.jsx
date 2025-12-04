@@ -40,7 +40,7 @@ const FeaturedProducts = ({ featuredProducts }) => {
 					<div className='overflow-hidden'>
 						<div
 							className='flex transition-transform duration-300 ease-in-out'
-							style={{ transform: `translateX(-${currentIndex * (100 / itemsPerPage)}%)` }}
+							style={{ transform: `translateX(-₱{currentIndex * (100 / itemsPerPage)}%)` }}
 						>
 							{featuredProducts?.map((product) => (
 								<div key={product._id} className='w-full sm:w-1/2 lg:w-1/3 xl:w-1/4 flex-shrink-0 px-2'>
