@@ -100,7 +100,7 @@ export const checkoutSuccess = async (req, res) => {
 					quantity: product.quantity,
 					price: product.price,
 				})),
-				totalAmount: session.amount_total / 100, // convert from cents to dollars,
+				totalAmount: session.amount_total / 100, // convert from cents to pesos,
 				stripeSessionId: sessionId,
 			});
 
