@@ -10,7 +10,7 @@ export const useProductStore = create((set) => ({
 	createProduct: async (productData) => {
 		set({ loading: true });
 		try {
-			const res = await axios.post("/products", productData);
+			const res = await axios.post("/api/products", productData);
 			set((prevState) => ({
 				products: [...prevState.products, res.data],
 				loading: false,
@@ -43,7 +43,7 @@ export const useProductStore = create((set) => ({
 	deleteProduct: async (productId) => {
 		set({ loading: true });
 		try {
-			await axios.delete(`/api/products/₱{productId}`);
+			await axios.delete(`/api/products/${productId}`);
 			set((prevProducts) => ({
 				products: prevProducts.products.filter((product) => product._id !== productId),
 				loading: false,
