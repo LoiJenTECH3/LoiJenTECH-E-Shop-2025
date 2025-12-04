@@ -76,7 +76,7 @@ export const useCartStore = create((set, get) => ({
 			return;
 		}
 
-		await axios.put(`/api/cart/₱{productId}`, { quantity });
+		await axios.put(`/api/cart/${productId}`, { quantity });
 		set((prevState) => ({
 			cart: prevState.cart.map((item) => (item._id === productId ? { ...item, quantity } : item)),
 		}));
